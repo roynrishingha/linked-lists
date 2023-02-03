@@ -6,6 +6,12 @@ pub struct List<T> {
     tail: Link<T>,
 }
 
+impl<T> Default for List<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 type Link<T> = Option<Rc<RefCell<Node<T>>>>;
 
 struct Node<T> {

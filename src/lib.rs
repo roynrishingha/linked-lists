@@ -1,3 +1,5 @@
+#![allow(clippy::should_implement_trait)]
+
 pub mod bad_but_safe_doubly_linked_deque;
 pub mod bad_list;
 pub mod list;

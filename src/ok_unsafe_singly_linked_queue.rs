@@ -5,6 +5,12 @@ pub struct List<T> {
     tail: *mut Node<T>,
 }
 
+impl<T> Default for List<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 type Link<T> = *mut Node<T>;
 
 struct Node<T> {
@@ -32,7 +38,7 @@ impl<T> List<T> {
     pub fn push(&mut self, elem: T) {
         unsafe {
             let new_tail = Box::into_raw(Box::new(Node {
-                elem: elem,
+                elem,
                 next: ptr::null_mut(),
             }));
 
@@ -93,7 +99,7 @@ impl<T> List<T> {
 
 impl<T> Drop for List<T> {
     fn drop(&mut self) {
-        while let Some(_) = self.pop() {}
+        while self.pop().is_some() {}
     }
 }
 

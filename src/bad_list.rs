@@ -14,6 +14,12 @@ pub struct List {
     head: Link,
 }
 
+impl Default for List {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Drop for List {
     fn drop(&mut self) {
         let mut cur_link = mem::replace(&mut self.head, Link::Empty);
