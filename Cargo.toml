@@ -1,0 +1,16 @@
+[package]
+name = "linked-lists"
+version = "0.1.0"
+edition = "2021"
+authors = ["Nrishinghananda Roy <royrustdev@gmail.com>"]
+description = "<Rust implementation of linked-lists created while learning it.>"
+keywords = ["data-structure"]
+repository = "https://github.com/royrustdev/linked-lists.git"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+publish = false
+
+[badges]
+maintenance = { status = "experimental" }
+
+[dependencies]
