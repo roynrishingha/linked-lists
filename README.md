@@ -213,3 +213,63 @@ fn main() {
 **NOTE:**
 This example uses `Rc<T>` and not `Arc<T>`. `RefCell<T>`s are for single-threaded scenarios. 
 Consider using `Mutex<T>` if you need shared mutability in a multi-threaded situation.
+
+## OK BUT UNSAFE SINGLY LINKED QUEUE
+
+### LAYOUT
+
+So what's a singly-linked queue like? 
+Well, when we had a singly-linked stack we pushed onto one end of the list, and then popped off the same end. 
+The only difference between a stack and a queue is that a queue pops off the other end. 
+So from our stack implementation we have:
+
+```
+input list:
+[Some(ptr)] -> (A, Some(ptr)) -> (B, None)
+
+stack push X:
+[Some(ptr)] -> (X, Some(ptr)) -> (A, Some(ptr)) -> (B, None)
+
+stack pop:
+[Some(ptr)] -> (A, Some(ptr)) -> (B, None)
+```
+
+### UNSAFE RUST
+
+The long and the short of it is that every language is actually unsafe as soon as you allow calling into other languages, because you can just have C do arbitrarily bad things. Yes: Java, Python, Ruby, Haskell... everyone is wildly unsafe in the face of Foreign Function Interfaces (FFI).
+
+Rust embraces this truth by splitting itself into two languages: Safe Rust, and Unsafe Rust.
+
+Unsafe Rust is a superset of Safe Rust. It's completely the same as Safe Rust in all its semantics and rules, you're just allowed to do a few extra things that are wildly unsafe and can cause the dreaded Undefined Behaviour that haunts C.
+
+### MIRI
+
+An experimental interpreter for Rust's mid-level intermediate representation (MIR). It can run binaries and test suites of cargo projects and detect certain classes of undefined behavior, for example:
+- Out-of-bounds memory accesses and use-after-free
+- Invalid use of uninitialized data
+- Violation of intrinsic preconditions (an unreachable_unchecked being reached, calling copy_nonoverlapping with overlapping ranges, ...)
+- Not sufficiently aligned memory accesses and references
+- Violation of some basic type invariants (a bool that is not 0 or 1, for example, or an invalid enum discriminant)
+- Experimental: Violations of the Stacked Borrows rules governing aliasing for reference types
+- Experimental: Data races (but no weak memory effects)
+
+On top of that, Miri will also tell you about memory leaks: when there is memory still allocated at the end of the execution, and that memory is not reachable from a global static, Miri will raise an error.
+However, be aware that Miri will not catch all cases of undefined behavior in your program, and cannot run all programs.
+
+#### **TL;DR:** 
+
+It interprets your program and notices if you break the rules at runtime and Do An Undefined Behaviour. This is necessary because Undefined Behaviour is generally a thing that happens at runtime. If the issue could be found at compile time, the compiler would just make it an error!
+
+```sh
+cargo +nightly miri test
+```
+
+### MEMORY MODEL
+
+- Rust conceptually handles reborrows by maintaining a "borrow stack"
+- Only the one on the top of the stack is "live" (has exclusive access)
+- When you access a lower one it becomes "live" and the ones above it get popped
+- You're not allowed to use pointers that have been popped from the borrow stack
+- The borrowchecker ensures safe code code obeys this
+- Miri theoretically checks that raw pointers obey this at runtime
+
